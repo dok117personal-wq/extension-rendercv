@@ -1,6 +1,7 @@
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 from typing import Any, Dict, List, Optional
 
@@ -98,7 +99,10 @@ def rendercv_pdf(doc: RenderCvDocument) -> Response:
                 encoding="utf-8",
             )
 
+            # Use same Python as this process so rendercv is found in deployment (no 'rendercv' on PATH)
             cmd = [
+                sys.executable,
+                "-m",
                 "rendercv",
                 "render",
                 str(input_path),
@@ -168,6 +172,8 @@ def rendercv_yaml_pdf(payload: RawYamlPayload) -> Response:
           input_path.write_text(yaml_text, encoding="utf-8")
 
           cmd = [
+              sys.executable,
+              "-m",
               "rendercv",
               "render",
               str(input_path),
