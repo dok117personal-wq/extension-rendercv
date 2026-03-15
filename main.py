@@ -69,7 +69,14 @@ class RawYamlPayload(BaseModel):
 app = FastAPI(title="RenderCV bridge", version="1.0.0")
 
 
+@app.get("/")
+def root() -> dict:
+    """Health check; confirms this is the RenderCV service and it accepts POST /rendercv/pdf."""
+    return {"service": "RenderCV bridge", "endpoints": ["POST /rendercv/pdf", "POST /rendercv/yaml/pdf"]}
+
+
 @app.post("/rendercv/pdf", response_class=Response)
+@app.post("/rendercv/pdf/", response_class=Response)  # allow trailing slash (some proxies send it)
 def rendercv_pdf(doc: RenderCvDocument) -> Response:
     """
     Accepts a RenderCV document (as JSON matching the YAML structure),
@@ -132,6 +139,7 @@ def rendercv_pdf(doc: RenderCvDocument) -> Response:
 
 
 @app.post("/rendercv/yaml/pdf", response_class=Response)
+@app.post("/rendercv/yaml/pdf/", response_class=Response)  # allow trailing slash
 def rendercv_yaml_pdf(payload: RawYamlPayload) -> Response:
     """
     Accept a raw RenderCV YAML document, render it, and return the PDF bytes.
