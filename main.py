@@ -70,6 +70,23 @@ class RawYamlPayload(BaseModel):
 app = FastAPI(title="RenderCV bridge", version="1.0.0")
 
 
+def _check_rendercv_available() -> None:
+    """Fail fast if rendercv is not importable (e.g. Lambda/serverless wrong runtime)."""
+    try:
+        import rendercv  # noqa: F401
+    except ImportError as e:
+        raise RuntimeError(
+            f"rendercv is not installed in this Python ({sys.executable}). "
+            "This service must run where dependencies are installed (e.g. Docker or Render native Python). "
+            "Do not deploy to AWS Lambda or Vercel serverless; use a container or native web service (Render, Railway, Fly.io, Cloud Run)."
+        ) from e
+
+
+@app.on_event("startup")
+def startup() -> None:
+    _check_rendercv_available()
+
+
 @app.get("/")
 def root() -> dict:
     """Health check; confirms this is the RenderCV service and it accepts POST /rendercv/pdf."""
